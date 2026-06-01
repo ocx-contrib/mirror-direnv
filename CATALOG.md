@@ -1,0 +1,24 @@
+---
+title: direnv
+description: Per-directory environment switcher that loads and unloads env vars as you cd between projects
+keywords: direnv,environment,env,dotenv,shell,devenv,direnv-project
+---
+
+# direnv
+
+direnv is an environment switcher for the shell. It loads and unloads
+environment variables depending on the current directory: on entering a folder
+with an `.envrc` (or `.env`), it evaluates the file and exports its variables
+into the current shell; on leaving, it restores the previous environment. This
+keeps per-project configuration — credentials, tool versions, `PATH` entries —
+out of your global profile and scoped to where it belongs.
+
+## What's included
+
+- **direnv** — the single static binary (`direnv version`, `direnv status`,
+  `direnv allow`, `direnv hook <shell>`, …). No runtime dependencies.
+
+## Links
+
+- [direnv Documentation](https://direnv.net)
+- [direnv on GitHub](https://github.com/direnv/direnv)

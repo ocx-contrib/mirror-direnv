@@ -1,0 +1,85 @@
+name: direnv
+target:
+  registry: ocx.sh
+  repository: direnv
+
+source:
+  type: github_release
+  owner: direnv
+  repo: direnv
+  tag_pattern: "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
+
+# Pass 1 — Linux only. darwin/windows staged below for Pass 2/3.
+assets:
+  # Raw binaries — no archive. One file per platform: `direnv.<os>-<arch>`.
+  linux/amd64:
+    - "^direnv\\.linux-amd64$"
+  linux/arm64:
+    - "^direnv\\.linux-arm64$"
+  # darwin/amd64:
+  #   - "^direnv\\.darwin-amd64$"
+  # darwin/arm64:
+  #   - "^direnv\\.darwin-arm64$"
+  # windows/amd64:
+  #   # 2.37.0+ dropped the `.exe` suffix on the asset name; older releases used
+  #   # `direnv.windows-amd64.exe`. Newest first.
+  #   - "^direnv\\.windows-amd64$"
+  #   - "^direnv\\.windows-amd64\\.exe$"
+
+asset_type:
+  # Raw binaries on every platform. The Unix binary lands as `direnv`; the
+  # Windows asset has no `.exe` suffix (2.37.0+), so name it explicitly so the
+  # bundle ships `direnv.exe` and resolves on PATH like a normal Windows tool.
+  default:
+    type: binary
+    name: direnv
+  platforms:
+    windows/amd64:
+      type: binary
+      name: direnv.exe
+
+metadata:
+  default: metadata.json
+
+skip_prereleases: true
+cascade: true
+build_timestamp: none
+
+versions:
+  min: "2.37.0"
+  new_per_run: 5
+  poll_interval: "0 */6 * * *"
+
+verify:
+  github_asset_digest: true
+
+concurrency:
+  max_downloads: 8
+  max_bundles: 4
+  max_pushes: 2
+  rate_limit_ms: 100
+  max_retries: 3
+  compression_threads: 0
+
+tests:
+  - name: smoke
+    script: tests/smoke.star
+
+platforms:
+  linux/amd64:
+    runner: ubuntu-latest
+  linux/arm64:
+    runner: ubuntu-24.04-arm
+  # darwin/amd64:
+  #   runner: macos-latest
+  #   prefix: ["arch", "-x86_64"]
+  # darwin/arm64:
+  #   runner: macos-latest
+  #   shell: bash
+  # windows/amd64:
+  #   runner: windows-latest
+  #   shell: pwsh
+
+notify:
+  discord:
+    webhook_secret: OCX_MIRROR_DISCORD_HOOK
