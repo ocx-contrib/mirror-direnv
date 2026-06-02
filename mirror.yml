@@ -70,8 +70,13 @@ platforms:
     runner: ubuntu-latest
   linux/arm64:
     runner: ubuntu-24.04-arm
+  # darwin/amd64 (Intel) tests on the arm64 macos-14 runner via Rosetta 2
+  # transparent translation — GitHub's macos-13 (Intel) pool is exhausted and
+  # deadlocks the push job. The x86_64 binary is exec'd by an arm64 `ocx`, so
+  # macOS translates it on the fly (no `arch` prefix — that would mis-target
+  # the arm64 `ocx` itself).
   darwin/amd64:
-    runner: macos-13
+    runner: macos-14
   darwin/arm64:
     runner: macos-14
   # windows/amd64:
