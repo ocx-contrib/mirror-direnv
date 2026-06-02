@@ -25,6 +25,8 @@ assets:
     # `direnv.windows-amd64.exe`. Newest first.
     - "^direnv\\.windows-amd64$"
     - "^direnv\\.windows-amd64\\.exe$"
+  windows/arm64:
+    - "^direnv\\.windows-arm64$"
 
 asset_type:
   # Raw binaries on every platform. The Unix binary lands as `direnv`; the
@@ -35,6 +37,9 @@ asset_type:
     name: direnv
   platforms:
     windows/amd64:
+      type: binary
+      name: direnv.exe
+    windows/arm64:
       type: binary
       name: direnv.exe
 
@@ -81,6 +86,9 @@ platforms:
     runner: macos-14
   windows/amd64:
     runner: windows-latest
+    shell: pwsh
+  windows/arm64:
+    runner: windows-11-arm
     shell: pwsh
 
 notify:
