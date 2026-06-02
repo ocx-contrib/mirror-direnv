@@ -9,17 +9,17 @@ source:
   repo: direnv
   tag_pattern: "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
 
-# Pass 1 — Linux only. darwin/windows staged below for Pass 2/3.
+# Pass 2 — Linux + darwin. windows staged below for Pass 3.
 assets:
   # Raw binaries — no archive. One file per platform: `direnv.<os>-<arch>`.
   linux/amd64:
     - "^direnv\\.linux-amd64$"
   linux/arm64:
     - "^direnv\\.linux-arm64$"
-  # darwin/amd64:
-  #   - "^direnv\\.darwin-amd64$"
-  # darwin/arm64:
-  #   - "^direnv\\.darwin-arm64$"
+  darwin/amd64:
+    - "^direnv\\.darwin-amd64$"
+  darwin/arm64:
+    - "^direnv\\.darwin-arm64$"
   # windows/amd64:
   #   # 2.37.0+ dropped the `.exe` suffix on the asset name; older releases used
   #   # `direnv.windows-amd64.exe`. Newest first.
@@ -70,12 +70,10 @@ platforms:
     runner: ubuntu-latest
   linux/arm64:
     runner: ubuntu-24.04-arm
-  # darwin/amd64:
-  #   runner: macos-latest
-  #   prefix: ["arch", "-x86_64"]
-  # darwin/arm64:
-  #   runner: macos-latest
-  #   shell: bash
+  darwin/amd64:
+    runner: macos-13
+  darwin/arm64:
+    runner: macos-14
   # windows/amd64:
   #   runner: windows-latest
   #   shell: pwsh
