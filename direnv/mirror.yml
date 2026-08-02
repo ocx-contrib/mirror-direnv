@@ -1,0 +1,113 @@
+extends: ../mirror-base.yml
+
+name: direnv
+
+# Logical index package `direnv/direnv` at the physical path
+# `ghcr.io/ocx-contrib/direnv/direnv` — slash segments, never hyphen-flattened.
+# The first segment must be this repo's own GitHub owner: GITHUB_TOKEN only
+# authorises packages owned by the repo the workflow runs in.
+#
+# Upstream's owner is the org `direnv` and the tool is `direnv`, so namespace
+# and name coincide — no tool-as-namespace substitution needed.
+#
+# Succeeds the flat `ocx.sh/direnv` coordinate this repository published before
+# the grouped layout, the same way mirror-kitware/cmake succeeds mirror-cmake.
+target:
+  registry: ghcr.io
+  repository: ocx-contrib/direnv/direnv
+
+source:
+  type: github_release
+  owner: direnv
+  repo: direnv
+  tag_pattern: "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
+
+# ─── libc gate (Phase 3.5) — the evidence, not the conclusion ───────────────
+#
+# direnv is a pure-Go binary built without cgo, so upstream ships ONE Linux
+# build per arch and it is fully static. Measured on v2.37.1:
+#
+#   $ file direnv.linux-amd64
+#   ELF 64-bit LSB executable, x86-64, statically linked, BuildID[sha1]=6ad367dd…, stripped
+#   $ readelf -l … | grep INTERP  → (none)
+#   $ readelf -d … | grep NEEDED  → (none)
+#   $ file direnv.linux-arm64
+#   ELF 64-bit LSB executable, ARM aarch64, statically linked, BuildID[sha1]=d2e47e38…, stripped
+#
+# No PT_INTERP and no DT_NEEDED means the artifact requires nothing of the
+# host, so both Linux keys are BARE — no `+libc.*` suffix. Upstream publishes
+# no musl/alpine variant, so there is no counterpart to split against. Container
+# legs (ubuntu + alpine + fedora) live in ../mirror-base.yml and are what turn
+# that claim into evidence.
+#
+# ─── Scope
+#
+# Raw binaries — no archive. One file per platform: `direnv.<os>-<arch>`.
+# Upstream also publishes, and this mirror deliberately does not carry:
+#   direnv.linux-{386,arm,mips*,ppc64*,riscv64,s390x}  — no GHA runner
+#   direnv.windows-386                                 — no GHA runner
+#   installers, checksums, source archives             — not the binary
+#
+# The anchored ^…$ regexes are what keep those out. A pattern matching zero
+# assets is silently skipped, not an error — it would yield a green run with a
+# missing platform.
+assets:
+  linux/amd64:
+    - "^direnv\\.linux-amd64$"
+  linux/arm64:
+    - "^direnv\\.linux-arm64$"
+  darwin/amd64:
+    - "^direnv\\.darwin-amd64$"
+  darwin/arm64:
+    - "^direnv\\.darwin-arm64$"
+  windows/amd64:
+    # 2.37.0+ dropped the `.exe` suffix on the asset name; older releases used
+    # `direnv.windows-amd64.exe`. Newest first.
+    - "^direnv\\.windows-amd64$"
+    - "^direnv\\.windows-amd64\\.exe$"
+  windows/arm64:
+    - "^direnv\\.windows-arm64$"
+
+asset_type:
+  # Raw binaries on every platform. The Unix binary lands as `direnv`; the
+  # Windows asset has no `.exe` suffix (2.37.0+), so name it explicitly so the
+  # bundle ships `direnv.exe` and resolves on PATH like a normal Windows tool.
+  default:
+    type: binary
+    name: direnv
+  platforms:
+    windows/amd64:
+      type: binary
+      name: direnv.exe
+    windows/arm64:
+      type: binary
+      name: direnv.exe
+
+metadata:
+  default: metadata.json
+
+catalog:
+  logo: logo.svg
+
+versions:
+  min: "2.37.0"
+  new_per_run: 5
+  poll_interval: "0 */6 * * *"
+
+tests:
+  # `script:` resolves from the REPOSITORY ROOT — unlike `metadata.default` and
+  # `catalog.logo` above, which resolve against this spec's own directory.
+  - name: smoke
+    script: direnv/tests/smoke.star
+
+annotations:
+  # From the Phase 1.5 license gate:
+  #   $ gh api repos/direnv/direnv/license --jq '.license.spdx_id'
+  #   MIT
+  org.opencontainers.image.licenses: "MIT"
+
+announce:
+  # Spelled out, not derived from target.repository — the logical name and the
+  # physical path are related by convention only.
+  package: direnv/direnv
+  fork: ocx-contrib/index
